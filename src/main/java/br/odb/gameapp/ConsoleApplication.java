@@ -4,6 +4,7 @@
 package br.odb.gameapp;
 
 import java.io.BufferedReader;
+import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
@@ -393,8 +394,8 @@ public abstract class ConsoleApplication extends Thread implements
 	@Override
 	public OutputStream openAsOutputStream(final String filename)
 			throws IOException {
-		// TODO Implement this, dickhead
-		return null;
+
+		return new FileOutputStream( filename );
 	}
 
 	public ConsoleApplication createDefaultClient() {
