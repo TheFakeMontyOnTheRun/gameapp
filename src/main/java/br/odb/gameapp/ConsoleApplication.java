@@ -44,6 +44,8 @@ public abstract class ConsoleApplication extends Thread implements
 		if (entry == null || entry.length() == 0) {
 			return;
 		}
+		
+		entry = sanitize( entry );
 
 		String[] tokens = Utils.tokenize(entry.trim(), " ");
 		String operator = tokens[0];
@@ -238,17 +240,17 @@ public abstract class ConsoleApplication extends Thread implements
 	}
 
 	public ConsoleApplication setAppName(final String appName) {
-		this.appName = appName;
+		this.appName = sanitize( appName );
 		return this;
 	}
 
 	public ConsoleApplication setAuthorName(final String authorName) {
-		this.authorName = authorName;
+		this.authorName = sanitize( authorName );
 		return this;
 	}
 
 	public ConsoleApplication setLicenseName(final String licenseName) {
-		this.licenseName = licenseName;
+		this.licenseName = sanitize( licenseName );
 		return this;
 	}
 
@@ -317,7 +319,11 @@ public abstract class ConsoleApplication extends Thread implements
 
 	public String getInputFromClient(String string) {
 
-		return getClient().getInput(string);
+		return sanitize( getClient().getInput(string) );
+	}
+
+	private String sanitize(String input) {
+		return input.replace( '"', ' ' ).replace( "'", "");
 	}
 
 	public ConsoleApplication showUI() {
@@ -363,6 +369,7 @@ public abstract class ConsoleApplication extends Thread implements
 
 		if (data != null && data.length() > 0) {
 
+			data = sanitize( data );
 			onDataEntered(data);
 		}
 		showUI();
