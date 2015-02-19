@@ -4,6 +4,7 @@
 package br.odb.gameapp;
 
 import java.io.BufferedReader;
+import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
@@ -15,11 +16,9 @@ import java.net.URLConnection;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 import java.util.Scanner;
 
 import br.odb.utils.FileServerDelegate;
-import br.odb.utils.Utils;
 
 /**
  * @author monty
@@ -28,6 +27,14 @@ import br.odb.utils.Utils;
 public abstract class ConsoleApplication extends Thread implements
 		FileServerDelegate, Runnable {
 
+	public static String extractPathFrom(String filePath) {
+		return filePath.substring(0, filePath.lastIndexOf(File.separator) + 1);
+	}
+
+	public static String extractFilenameFrom(String filePath) {
+		return filePath.substring(filePath.lastIndexOf(File.separator) + 1);
+	}
+	
 	ApplicationClient client;
 	final HashMap<String, UserCommandLineAction> commands = new HashMap<String, UserCommandLineAction>();
 	private String appName;
@@ -47,7 +54,7 @@ public abstract class ConsoleApplication extends Thread implements
 		
 		entry = sanitize( entry );
 
-		String[] tokens = Utils.tokenize(entry.trim(), " ");
+		String[] tokens = entry.trim().split( "[ ]+" );
 		String operator = tokens[0];
 		String operand = entry.replace(operator, "").trim();
 
