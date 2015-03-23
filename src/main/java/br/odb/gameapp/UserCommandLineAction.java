@@ -4,6 +4,11 @@ package br.odb.gameapp;
 public abstract class UserCommandLineAction {
 	
 	public class InvalidCommandRunException extends Exception {
+
+		/**
+		 * 
+		 */
+		private static final long serialVersionUID = 5986983118464310069L;
 		
 	}
 	
