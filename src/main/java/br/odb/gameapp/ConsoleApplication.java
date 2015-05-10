@@ -24,8 +24,7 @@ import br.odb.utils.FileServerDelegate;
  * @author monty
  * 
  */
-public abstract class ConsoleApplication extends Thread implements
-		FileServerDelegate, Runnable {
+public abstract class ConsoleApplication implements Runnable, FileServerDelegate {
 
 	public static String extractPathFrom(String filePath) {
 		return filePath.substring(0, filePath.lastIndexOf(File.separator) + 1);
