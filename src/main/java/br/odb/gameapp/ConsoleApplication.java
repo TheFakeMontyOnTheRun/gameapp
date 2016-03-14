@@ -3,13 +3,12 @@
  */
 package br.odb.gameapp;
 
+import br.odb.gameapp.command.UserCommandLineAction;
+
 import java.io.BufferedReader;
 import java.io.File;
-import java.io.FileOutputStream;
 import java.io.IOException;
-import java.io.InputStream;
 import java.io.InputStreamReader;
-import java.io.OutputStream;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.net.URLConnection;
@@ -18,14 +17,13 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Scanner;
 
-import br.odb.utils.FileServerDelegate;
-
 /**
  * @author monty
- * 
  */
-public abstract class ConsoleApplication implements Runnable, FileServerDelegate {
+public abstract class ConsoleApplication {
 
+
+	//extra concern 1
 	public static String extractPathFrom(String filePath) {
 		return filePath.substring(0, filePath.lastIndexOf(File.separator) + 1);
 	}
@@ -33,7 +31,8 @@ public abstract class ConsoleApplication implements Runnable, FileServerDelegate
 	public static String extractFilenameFrom(String filePath) {
 		return filePath.substring(filePath.lastIndexOf(File.separator) + 1);
 	}
-	
+	////////////////
+
 	ApplicationClient client;
 	final HashMap<String, UserCommandLineAction> commands = new HashMap<String, UserCommandLineAction>();
 	private String appName;
@@ -41,19 +40,20 @@ public abstract class ConsoleApplication implements Runnable, FileServerDelegate
 	private String licenseName;
 	private int yearRelease;
 	public boolean continueRunning;
-	private GameUpdateDelegate gameUpdateDelegate;
 	final ArrayList<String> cmdHistory = new ArrayList<String>();
 	private boolean saveInHistory = true;
-	
+
+
+	// another part
 	public void runCmd(String entry) throws Exception {
 
 		if (entry == null || entry.length() == 0) {
 			return;
 		}
-		
-		entry = sanitize( entry );
 
-		String[] tokens = entry.trim().split( "[ ]+" );
+		entry = sanitize(entry);
+
+		String[] tokens = entry.trim().split("[ ]+");
 		String operator = tokens[0];
 		String operand = entry.replace(operator, "").trim();
 
@@ -64,12 +64,10 @@ public abstract class ConsoleApplication implements Runnable, FileServerDelegate
 			cmd.run(this, operand);
 		}
 
-	}	
-
-	public ConsoleApplication() {
-		init();
 	}
+	/////////////
 
+	//leaky
 	public UserCommandLineAction getCommand(String cmdName) {
 		return commands.get(cmdName);
 	}
@@ -77,21 +75,25 @@ public abstract class ConsoleApplication implements Runnable, FileServerDelegate
 	public HashMap<String, UserCommandLineAction> getCommandList() {
 		return commands;
 	}
+////
 
-	public void update(long ms) {
-	}
 
+	//maybe?
 	protected void registerCommand(UserCommandLineAction cmd) {
 		commands.put(cmd.toString(), cmd);
 	}
 
-	public class ConsoleClient implements ApplicationClient {
+
+	//You must get you
+	public static class ConsoleClient implements ApplicationClient {
 
 		Scanner in;
+		private ConsoleApplication consoleApplication;
 
-		public ConsoleClient() {
+		public ConsoleClient(ConsoleApplication consoleApplication) {
 			in = new Scanner(System.in);
 			in.useDelimiter("\n");
+			this.consoleApplication = consoleApplication;
 		}
 
 		@Override
@@ -163,12 +165,6 @@ public abstract class ConsoleApplication implements Runnable, FileServerDelegate
 		}
 
 		@Override
-		public void setClientId(final String id) {
-			// TODO Do we still need this? Looks like it. Maybe check the idea
-			// with Telnet clients.
-		}
-
-		@Override
 		public void alert(final String string) {
 			printNormal("*" + string + "*");
 
@@ -181,36 +177,13 @@ public abstract class ConsoleApplication implements Runnable, FileServerDelegate
 		}
 
 		@Override
-		public void clear() {
-			printNormal("\n\n\n\n\n");
-		}
-
-		@Override
 		public void sendQuit() {
-			continueRunning = false;
+			consoleApplication.continueRunning = false;
 		}
 
-		@Override
-		public boolean isConnected() {
-
-			return continueRunning;
-		}
-
-		@Override
-		public String openHTTP(String url) {
-
-			return ConsoleApplication.defaultJavaHTTPGet(url, this);
-		}
-
-		@Override
-		public void shortPause() {
-			try {
-				Thread.sleep(750);
-			} catch (InterruptedException e) {
-			}
-		}
 	}
 
+	///////////////////
 	public ConsoleApplication setApplicationClient(
 			final ApplicationClient client) {
 		this.client = client;
@@ -246,17 +219,17 @@ public abstract class ConsoleApplication implements Runnable, FileServerDelegate
 	}
 
 	public ConsoleApplication setAppName(final String appName) {
-		this.appName = sanitize( appName );
+		this.appName = sanitize(appName);
 		return this;
 	}
 
 	public ConsoleApplication setAuthorName(final String authorName) {
-		this.authorName = sanitize( authorName );
+		this.authorName = sanitize(authorName);
 		return this;
 	}
 
 	public ConsoleApplication setLicenseName(final String licenseName) {
-		this.licenseName = sanitize( licenseName );
+		this.licenseName = sanitize(licenseName);
 		return this;
 	}
 
@@ -308,9 +281,7 @@ public abstract class ConsoleApplication implements Runnable, FileServerDelegate
 	}
 
 
-
 	public void waitForInput() {
-
 		String entry;
 		continueRunning = true;
 
@@ -324,108 +295,40 @@ public abstract class ConsoleApplication implements Runnable, FileServerDelegate
 	}
 
 	public String getInputFromClient(String string) {
-
-		return sanitize( getClient().getInput(string) );
+		return sanitize(getClient().getInput(string));
 	}
 
 	private String sanitize(String input) {
-		return input.replace( '"', ' ' ).replace( "'", "");
+		return input.replace('"', ' ').replace("'", "");
 	}
 
 	public ConsoleApplication showUI() {
-
-		if (gameUpdateDelegate != null) {
-			this.gameUpdateDelegate.update();
-		}
-
 		return this;
 	}
 
-	@Override
-	public void run() {
-
-		if (client != null) {
-
-			printPreamble();
-			waitForInput();
-
-			if (!client.isConnected()) {
-				doQuit();
-				client = null;
-			}
-		}
-	}
-
-	protected abstract void doQuit();
-
 	private String getAuthor() {
-
 		return authorName;
 	}
 
 	private String getLicenseName() {
-
 		return licenseName;
 	}
 
-	void setArgs(final String[] args) {
-	}
-
 	public void sendData(String data) {
-
 		if (data != null && data.length() > 0) {
-
-			data = sanitize( data );
+			data = sanitize(data);
 			onDataEntered(data);
 		}
 		showUI();
 	}
 
 	public List<String> getCommandHistory() {
-
 		return cmdHistory;
 	}
 
-	@Override
-	public InputStream openAsInputStream(final String filename)
-			throws IOException {
-		return null;
-	}
-
-	@Override
-	public InputStream openAsset(final String filename) throws IOException {
-		// TODO Check what to do with this.
-		return null;
-	}
-
-	@Override
-	public InputStream openAsset(final int resId) throws IOException {
-		// TODO You shithead. Implement this.
-		return null;
-	}
-
-	@Override
-	public OutputStream openAsOutputStream(final String filename)
-			throws IOException {
-
-		return new FileOutputStream( filename );
-	}
-
-	public ConsoleApplication createDefaultClient() {
-		setApplicationClient(new ConsoleClient());
-		return this;
-	}
-
-	public ConsoleApplication setGameUpdateDelegate(
-			final GameUpdateDelegate delegate) {
-
-		this.gameUpdateDelegate = delegate;
-
-		return this;
-	}
-
+	//maybe?
 	public UserCommandLineAction[] getAvailableCommands() {
-		return commands.values().toArray(new UserCommandLineAction[] {});
+		return commands.values().toArray(new UserCommandLineAction[]{});
 	}
 
 }
